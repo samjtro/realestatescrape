@@ -6,16 +6,15 @@ import (
 	"strconv"
 
 	"github.com/gocolly/colly"
-	"github.com/joho/godotenv"
+
 )
 
 var (
-	cityStateFlag    string
-	priceIsUnderFlag int
+	cityStateFlag string
+	priceMaxFlag  int
 	pagesFlag     int
 
 	rdcResults []Listings
-
 	c = colly.NewCollector()
 
 	url = "https://www.realtor.com/realestateandhomes-search/%s/type-single-family-home/price-na-%d/pg-%d", //CityState, Price, Page #
@@ -23,10 +22,10 @@ var (
 type Listing struct {
 	Status  string
 	Address string
-	Bed     int
+	/*Bed   int
 	Bath    int
 	Sqft    int
-	LotSize int
+	LotSize int*/
 	Price   int
 }
 
@@ -39,14 +38,19 @@ func init() {
 		log.Fatal(err)
 	}
 
-	cityStateFlag = os.Getenv("rdc-citystate")
-	priceIsUnderFlag, err = strconv.Atoi(os.Getenv("rdc-price"))
+	cityStateFlag, err  = os.Getenv("cityState")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pagesFlag, err = strconv.Atoi(os.Getenv("rdc-pages"))
+	priceMaxFlag, err = strconv.Atoi(os.Getenv("priceMax"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pagesFlag, err = strconv.Atoi(os.Getenv("pages"))
 
 	if err != nil {
 		log.Fatal(err)
@@ -59,8 +63,7 @@ func init() {
 
 func Scrape() {
 	for i := 1; i <= pagesFlag; i++ {
-		url := fmt.Sprintf(url, cityStateFlag, priceIsUnderFlag, i)
-
+		url = fmt.Sprintf(url, cityStateFlag, priceMaxFlag, i)
 		listings := ScrapeRDCHelper(url)
 		rdcResults = append(rdcResults, listings)
 	}
@@ -71,7 +74,6 @@ func Scrape() {
 		}
 	}
 }
-
 
 /*
 for states:     'Colorado' or 'California'
@@ -87,7 +89,7 @@ func ScrapeRDCHelper(url string) Listings {
 		listing.Status = e.ChildText("span.jsx-3853574337.statusText")
 		listing.Address = e.ChildText("div.jsx-11645185.address.ellipsis.srp-page-address.srp-address-redesign") + " " + e.ChildText("div.jsx-11645185.address-second.ellipsis")
 
-		bbsl := e.ChildText("ul.jsx-946479843.property-meta.list-unstyled.property-meta-srpPage")
+		/*bbsl := e.ChildText("ul.jsx-946479843.property-meta.list-unstyled.property-meta-srpPage")
 		unorderedList := RDCUnmarshallPropertyMeta(bbsl)
 
 		if len(unorderedList) >= 1 {
@@ -106,13 +108,14 @@ func ScrapeRDCHelper(url string) Listings {
 			listing.LotSize = unorderedList[3]
 		}
 
-		/*sqft, err := strconv.Atoi((e.ChildText("span.jsx-946479843.meta-value")))
+		sqft, err := strconv.Atoi((e.ChildText("span.jsx-946479843.meta-value")))
 
 		if err != nil {
 			log.Fatal(err)
 		}*/
 
 		listings = append(listings, listing)
+		//fmt.Println(listing)
 	})
 
 	c.Visit(url)
