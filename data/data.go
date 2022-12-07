@@ -1,6 +1,8 @@
 package data
 
 import (
+	"fmt"
+
 	"github.com/samjtro/realestatescrape/scrape"
 )
 
@@ -23,14 +25,31 @@ func init() {
 	}
 }
 
+func Print() {
+	fmt.Printf("Mean: %d\n", MeanPrice())
+	min, max := MinMaxPrice()
+	fmt.Printf("Min: %d\nMax: %d\n", min, max)
+}
+
 func MeanPrice() int {
 	return totalPrice / len(priceList)
 }
 
-/*func MedianPrice() {
+func MinMaxPrice() (int, int) {
+	var (
+		min int
+		max int
+	)
 
+	for i, price := range priceList {
+		if i+1 < len(priceList) {
+			if price < priceList[i+1] {
+				min = price
+			} else if price > priceList[i+1] {
+				max = price
+			}
+		}
+	}
+
+	return min, max
 }
-
-func PriceOutliers() {
-
-}*/

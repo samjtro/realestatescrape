@@ -64,7 +64,7 @@ func Scrape() []Listings {
 		url = fmt.Sprintf(url, cityStateFlag, priceMaxFlag, i)
 		listings := ScrapeRDCHelper(url)
 		rdcResults = append(rdcResults, listings)
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second)
 	}
 
 	return rdcResults
@@ -150,6 +150,4 @@ bbsl := e.ChildText("ul.jsx-946479843.property-meta.list-unstyled.property-meta-
 		if err != nil {
 			log.Fatal(err)
 		}
-
-
 */
