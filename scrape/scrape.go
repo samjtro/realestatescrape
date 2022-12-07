@@ -1,12 +1,13 @@
 package scrape
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
 
 	"github.com/gocolly/colly"
-
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -15,9 +16,10 @@ var (
 	pagesFlag     int
 
 	rdcResults []Listings
-	c = colly.NewCollector()
+	c          = colly.NewCollector()
 
-	url = "https://www.realtor.com/realestateandhomes-search/%s/type-single-family-home/price-na-%d/pg-%d", //CityState, Price, Page #
+	url = "https://www.realtor.com/realestateandhomes-search/%s/type-single-family-home/price-na-%d/pg-%d" //CityState, Price, Page #
+)
 
 type Listing struct {
 	Status  string
@@ -26,7 +28,7 @@ type Listing struct {
 	Bath    int
 	Sqft    int
 	LotSize int*/
-	Price   int
+	Price int
 }
 
 type Listings []Listing
@@ -38,12 +40,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	cityStateFlag, err  = os.Getenv("cityState")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	cityStateFlag = os.Getenv("cityState")
 	priceMaxFlag, err = strconv.Atoi(os.Getenv("priceMax"))
 
 	if err != nil {
@@ -70,7 +67,7 @@ func Scrape() {
 
 	for _, listings := range rdcResults {
 		for _, listing := range listings {
-			fmt.Println(listing.Status, listing.Address, listing.Price, listing.Bed, listing.Bath, listing.Sqft, listing.LotSize)
+			fmt.Println(listing.Status, listing.Address, listing.Price)
 		}
 	}
 }
@@ -85,7 +82,8 @@ func ScrapeRDCHelper(url string) Listings {
 	c.OnHTML("li.jsx-1881802087.component_property-card", func(e *colly.HTMLElement) {
 		var listing Listing
 
-		listing.Price, _ = strconv.Atoi(UnformatPrice(e.ChildText("span.rui__x3geed-0.kitA-dS")))
+		fmt.Println(e.ChildText("span.Price__Component-rui__x3geed-0.gipzbd"))
+
 		listing.Status = e.ChildText("span.jsx-3853574337.statusText")
 		listing.Address = e.ChildText("div.jsx-11645185.address.ellipsis.srp-page-address.srp-address-redesign") + " " + e.ChildText("div.jsx-11645185.address-second.ellipsis")
 
@@ -121,28 +119,6 @@ func ScrapeRDCHelper(url string) Listings {
 	c.Visit(url)
 
 	return listings
-}
-
-// This function is broken atm; should return an arry of ints with the Bed, Bath, Sqft & LotSize but does not do so
-func RDCUnmarshallPropertyMeta(in string) []int {
-	var unmarshalledItems []int
-
-	for i, x := range in {
-		if x == 'b' && in[i+1] == 'e' {
-			beds, _ := strconv.Atoi(string(in[i-1]))
-			unmarshalledItems = append(unmarshalledItems, beds)
-		} else if x == 'b' && in[i+1] == 'a' {
-			baths, _ := strconv.Atoi(string(in[i-1]))
-			unmarshalledItems = append(unmarshalledItems, baths)
-			sqft, _ := strconv.Atoi(string(in[i+4]))
-			unmarshalledItems = append(unmarshalledItems, sqft)
-		} else if x == 'l' {
-			lotSize, _ := strconv.Atoi(string(in[i-6]))
-			unmarshalledItems = append(unmarshalledItems, lotSize)
-		}
-	}
-
-	return unmarshalledItems
 }
 
 func UnformatPrice(price string) string {
