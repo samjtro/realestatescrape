@@ -3,15 +3,17 @@ package scrape
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/gocolly/colly"
+	"github.com/joho/godotenv"
 )
 
 var (
-	cityStateFlag = "Cheyenne_WY"
-	priceMaxFlag  = 200000
-	pagesFlag     = 5
+	cityStateFlag string
+	priceMaxFlag  int
+	pagesFlag     int
 
 	rdcResults []Listings
 	c          = colly.NewCollector()
@@ -32,6 +34,25 @@ type Listing struct {
 type Listings []Listing
 
 func init() {
+	err := godotenv.Load("config.env")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cityStateFlag = os.Getenv("cityState")
+	priceMaxFlag, err = strconv.Atoi(os.Getenv("priceMax"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pagesFlag, err = strconv.Atoi(os.Getenv("pages"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	c.OnError(func(_ *colly.Response, err error) {
 		log.Fatal(err)
 	})
@@ -97,7 +118,6 @@ func ScrapeRDCHelper(url string) Listings {
 		}*/
 
 		listings = append(listings, listing)
-		fmt.Println(listing)
 	})
 
 	c.Visit(url)

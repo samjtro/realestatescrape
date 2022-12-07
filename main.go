@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/samjtro/go-collegehousingprices/scrape"
+	"github.com/samjtro/realestatescrape/scrape"
 )
 
 func main() {
