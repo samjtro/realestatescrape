@@ -1,9 +1,11 @@
 package main
 
 import (
-	"github.com/samjtro/realestatescrape/scrape"
+	"fmt"
+
+	"github.com/samjtro/realestatescrape/data"
 )
 
 func main() {
-	scrape.Scrape()
+	fmt.Println(data.MeanPrice())
 }

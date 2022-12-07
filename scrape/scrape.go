@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
@@ -18,7 +19,7 @@ var (
 	rdcResults []Listings
 	c          = colly.NewCollector()
 
-	url = "https://www.realtor.com/realestateandhomes-search/%s/type-single-family-home/price-na-%d/pg-%d" //CityState, Price, Page #
+	url = "https://www.realtor.com/realestateandhomes-search/%s/price-na-%d/pg-%d" //CityState, Price, Page #
 )
 
 type Listing struct {
@@ -58,18 +59,15 @@ func init() {
 	})
 }
 
-func Scrape() {
+func Scrape() []Listings {
 	for i := 1; i <= pagesFlag; i++ {
 		url = fmt.Sprintf(url, cityStateFlag, priceMaxFlag, i)
 		listings := ScrapeRDCHelper(url)
 		rdcResults = append(rdcResults, listings)
+		time.Sleep(time.Second * 1)
 	}
 
-	for _, listings := range rdcResults {
-		for _, listing := range listings {
-			fmt.Println(listing.Status, listing.Address, listing.Price)
-		}
-	}
+	return rdcResults
 }
 
 /*
@@ -91,31 +89,6 @@ func ScrapeRDCHelper(url string) Listings {
 
 		listing.Status = e.ChildText("span.jsx-3853574337.statusText")
 		listing.Address = e.ChildText("div.jsx-11645185.address.ellipsis.srp-page-address.srp-address-redesign") + " " + e.ChildText("div.jsx-11645185.address-second.ellipsis")
-
-		/*bbsl := e.ChildText("ul.jsx-946479843.property-meta.list-unstyled.property-meta-srpPage")
-		unorderedList := RDCUnmarshallPropertyMeta(bbsl)
-
-		if len(unorderedList) >= 1 {
-			listing.Bed = unorderedList[0]
-		}
-
-		if len(unorderedList) >= 2 {
-			listing.Bath = unorderedList[1]
-		}
-
-		if len(unorderedList) >= 3 {
-			listing.Sqft = unorderedList[2]
-		}
-
-		if len(unorderedList) >= 4 {
-			listing.LotSize = unorderedList[3]
-		}
-
-		sqft, err := strconv.Atoi((e.ChildText("span.jsx-946479843.meta-value")))
-
-		if err != nil {
-			log.Fatal(err)
-		}*/
 
 		listings = append(listings, listing)
 	})
@@ -148,3 +121,35 @@ func UnformatPrice(price string) string {
 
 	return string(newInt)
 }
+
+/*UNUSED SNIPPETS
+
+=x= Bed Bath Sqft LotSize Function - Unfinished =x=
+
+bbsl := e.ChildText("ul.jsx-946479843.property-meta.list-unstyled.property-meta-srpPage")
+		unorderedList := RDCUnmarshallPropertyMeta(bbsl)
+
+		if len(unorderedList) >= 1 {
+			listing.Bed = unorderedList[0]
+		}
+
+		if len(unorderedList) >= 2 {
+			listing.Bath = unorderedList[1]
+		}
+
+		if len(unorderedList) >= 3 {
+			listing.Sqft = unorderedList[2]
+		}
+
+		if len(unorderedList) >= 4 {
+			listing.LotSize = unorderedList[3]
+		}
+
+		sqft, err := strconv.Atoi((e.ChildText("span.jsx-946479843.meta-value")))
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+
+*/
