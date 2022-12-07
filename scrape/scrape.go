@@ -97,7 +97,7 @@ func ScrapeRDCHelper(url string) Listings {
 		}*/
 
 		listings = append(listings, listing)
-		//fmt.Println(listing)
+		fmt.Println(listing)
 	})
 
 	c.Visit(url)
