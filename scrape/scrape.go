@@ -3,17 +3,15 @@ package scrape
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 
 	"github.com/gocolly/colly"
-	"github.com/joho/godotenv"
 )
 
 var (
-	cityStateFlag string
-	priceMaxFlag  int
-	pagesFlag     int
+	cityStateFlag = "Cheyenne_WY"
+	priceMaxFlag  = 200000
+	pagesFlag     = 5
 
 	rdcResults []Listings
 	c          = colly.NewCollector()
@@ -24,35 +22,16 @@ var (
 type Listing struct {
 	Status  string
 	Address string
+	Price   int
 	/*Bed   int
 	Bath    int
 	Sqft    int
 	LotSize int*/
-	Price int
 }
 
 type Listings []Listing
 
 func init() {
-	err := godotenv.Load("config.env")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cityStateFlag = os.Getenv("cityState")
-	priceMaxFlag, err = strconv.Atoi(os.Getenv("priceMax"))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	pagesFlag, err = strconv.Atoi(os.Getenv("pages"))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	c.OnError(func(_ *colly.Response, err error) {
 		log.Fatal(err)
 	})
@@ -81,8 +60,13 @@ func ScrapeRDCHelper(url string) Listings {
 
 	c.OnHTML("li.jsx-1881802087.component_property-card", func(e *colly.HTMLElement) {
 		var listing Listing
+		var err error
 
-		fmt.Println(e.ChildText("span.Price__Component-rui__x3geed-0.gipzbd"))
+		listing.Price, err = strconv.Atoi(UnformatPrice(e.ChildText("span.Price__Component-rui__x3geed-0.gipzbd")))
+
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		listing.Status = e.ChildText("span.jsx-3853574337.statusText")
 		listing.Address = e.ChildText("div.jsx-11645185.address.ellipsis.srp-page-address.srp-address-redesign") + " " + e.ChildText("div.jsx-11645185.address-second.ellipsis")
