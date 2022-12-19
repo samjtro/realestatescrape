@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/samjtro/realestatescrape/scrape"
 )
@@ -17,12 +18,15 @@ func init() {
 	for _, listings := range rdcListings {
 		for _, listing := range listings {
 			priceList = append(priceList, listing.Price)
+			fmt.Println(listing.Sqft)
 		}
 	}
 
 	for _, price := range priceList {
 		totalPrice += price
 	}
+
+	sort.Ints(priceList)
 }
 
 func Print() {
@@ -31,8 +35,12 @@ func Print() {
 	fmt.Printf("Min: %d\nMax: %d\n", min, max)
 }
 
-func MeanPrice() int {
+func MeanPrice(fu) int {
 	return totalPrice / len(priceList)
+}
+
+func MedianPrice() int {
+	return priceList[len(priceList)/2]
 }
 
 func MinMaxPrice() (int, int) {

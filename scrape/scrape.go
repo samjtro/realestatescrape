@@ -26,10 +26,10 @@ type Listing struct {
 	Status  string
 	Address string
 	Price   int
-	/*Bed   int
+	Bed     int
 	Bath    int
 	Sqft    int
-	LotSize int*/
+	LotSize int
 }
 
 type Listings []Listing
@@ -64,7 +64,7 @@ func Scrape() []Listings {
 		url = fmt.Sprintf(url, cityStateFlag, priceMaxFlag, i)
 		listings := ScrapeRDCHelper(url)
 		rdcResults = append(rdcResults, listings)
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 1)
 	}
 
 	return rdcResults
@@ -89,6 +89,11 @@ func ScrapeRDCHelper(url string) Listings {
 
 		listing.Status = e.ChildText("span.jsx-3853574337.statusText")
 		listing.Address = e.ChildText("div.jsx-11645185.address.ellipsis.srp-page-address.srp-address-redesign") + " " + e.ChildText("div.jsx-11645185.address-second.ellipsis")
+		listing.Sqft, err = strconv.Atoi(UnformatSqft(e.ChildText("span.jsx-946479843.meta-value")))
+
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		listings = append(listings, listing)
 	})
@@ -96,6 +101,22 @@ func ScrapeRDCHelper(url string) Listings {
 	c.Visit(url)
 
 	return listings
+}
+
+func UnformatSqft(uSqft string) string {
+	var newInt []rune
+
+	for _, a := range uSqft {
+		if a == ',' {
+			continue
+		} else if a == ' ' {
+			continue
+		} else {
+			newInt = append(newInt, a)
+		}
+	}
+
+	return string(newInt)
 }
 
 func UnformatPrice(price string) string {
